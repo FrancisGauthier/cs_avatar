@@ -1,8 +1,9 @@
 <!--
 Sync Impact Report
-- Version change: unversioned scaffold -> 1.0.0
-- Modified principles: template placeholders -> five project-specific principles
-- Added sections: Security and Architecture Constraints; Development Workflow and Quality Gates
+- Version change: 1.0.0 -> 1.1.0
+- Modified principles: none
+- Added sections: none
+- Added principles: VI. Counter-Strike 2 Brand and Theme Consistency
 - Removed sections: none
 - Follow-up TODOs: RATIFICATION_DATE remains TODO because the original adoption date is unknown
 -->
@@ -49,6 +50,15 @@ state MUST have a documented need and an owner. Repeated logic SHOULD be central
 behind clear, typed interfaces, and obsolete paths MUST be removed when safe.
 Rationale: small, understandable systems are easier to secure, test, and operate.
 
+### VI. Counter-Strike 2 Brand and Theme Consistency
+Every user-facing surface MUST consistently evoke Counter-Strike 2's competitive,
+tactical setting through a coherent visual style, including color, typography,
+imagery, and tone. The product MUST use original or properly authorized assets and
+MUST NOT imply official affiliation without authorization. Reviews of user-facing
+changes MUST verify consistency with the product's Counter-Strike 2-inspired
+identity. Rationale: consistent theming makes the application recognizable to its
+intended players while distinguishing it from the official game.
+
 ## Security and Architecture Constraints
 
 The application MUST avoid embedding secrets or privileged credentials in client
@@ -85,4 +95,4 @@ expanded requirements, and PATCH for clarifications and non-semantic refinements
 Approved exceptions do not suspend the constitution; they are temporary, explicit,
 and subject to the documented mitigation and review date.
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date is unknown | **Last Amended**: 2026-11-24
+**Version**: 1.1.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date is unknown | **Last Amended**: 2026-11-24
