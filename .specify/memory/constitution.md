@@ -1,11 +1,11 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 -> 1.1.0
+- Version change: 1.1.0 -> 1.2.0
 - Modified principles: none
 - Added sections: none
-- Added principles: VI. Counter-Strike 2 Brand and Theme Consistency
+- Added principles: VII. Repository Structure
 - Removed sections: none
-- Follow-up TODOs: RATIFICATION_DATE remains TODO because the original adoption date is unknown
+- Follow-up TODOs: RATIFICATION_DATE remains TODO because the original adoption date is unknown; existing paths outside the canonical layout require a separately planned migration
 -->
 
 # cs_avatar Constitution
@@ -59,6 +59,18 @@ changes MUST verify consistency with the product's Counter-Strike 2-inspired
 identity. Rationale: consistent theming makes the application recognizable to its
 intended players while distinguishing it from the official game.
 
+### VII. Repository Structure
+Application source MUST be organized under the root `src/` directory,
+documentation, specifications, and contracts under `docs/`, automated tests
+under `tests/`, and infrastructure and deployment configuration under `infra/`.
+Each directory MAY contain subdirectories as needed, but projects MUST NOT add
+parallel root-level directories for these same purposes. Root-level manifests,
+version-control metadata, and tool configuration MAY remain at the repository
+root. Existing content outside this layout MAY remain until a separately
+planned migration; new project files MUST use the canonical directories.
+Rationale: consistent locations make code, documentation, tests, and operational
+configuration easier to discover and maintain.
+
 ## Security and Architecture Constraints
 
 The application MUST avoid embedding secrets or privileged credentials in client
@@ -67,6 +79,8 @@ validated requests, authenticated and authorized access, rate limiting where
 appropriate, and safe logging that excludes secrets and unnecessary personal data.
 Client and server boundaries MUST use explicit schemas and versioned contracts.
 Data collection and retention MUST be limited to what the feature requires.
+Build and documentation tools MUST create new project files in the canonical
+directories defined by Principle VII.
 
 ## Development Workflow and Quality Gates
 
@@ -95,4 +109,4 @@ expanded requirements, and PATCH for clarifications and non-semantic refinements
 Approved exceptions do not suspend the constitution; they are temporary, explicit,
 and subject to the documented mitigation and review date.
 
-**Version**: 1.1.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date is unknown | **Last Amended**: 2026-11-24
+**Version**: 1.2.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date is unknown | **Last Amended**: 2026-11-25

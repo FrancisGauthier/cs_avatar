@@ -1,0 +1,92 @@
+openapi: 3.1.0
+info:
+  title: cs_avatar Steam Login Profile Contract
+  version: 1.0.0
+  description: |
+    Steam OpenID 2.0 sign-in, callback, and authenticated-session profile
+    contract for this feature.
+servers:
+  - url: https://cs-avatar.example
+    description: Production same-origin API
+paths:
+  /api/v1/auth/steam/login:
+    get:
+      security: []
+      summary: Begin Steam OpenID 2.0 sign-in
+      responses:
+        "302":
+          description: Redirects the browser to the Steam OpenID provider.
+  /api/v1/auth/steam/callback:
+    get:
+      security: []
+      summary: Verify the Steam OpenID assertion and create an authenticated session
+      description: |
+        The backend validates the provider, signature, nonce, return URL, and
+        claimed Steam ID. It never trusts a client-supplied Steam ID.
+        A Steam profile lookup failure does not invalidate a verified identity.
+      parameters:
+        - name: openid.mode
+          in: query
+          required: true
+          schema:
+            type: string
+          description: OpenID response mode returned by Steam.
+      responses:
+        "302":
+          description: Redirects to the SPA and sets the authenticated session cookie.
+        "400":
+          description: The OpenID response is invalid, mismatched, or expired.
+  /api/v1/auth/session:
+    get:
+      summary: Return the current authenticated Steam identity and display profile
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: The active session; profile fields may be unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SteamSession"
+              examples:
+                profileAvailable:
+                  value:
+                    steamId: "76561198000000000"
+                    personaName: "Example Player"
+                    avatarUrl: "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/32/example_full.jpg"
+                    profileStatus: AVAILABLE
+                profileUnavailable:
+                  value:
+                    steamId: "76561198000000000"
+                    personaName: null
+                    avatarUrl: null
+                    profileStatus: UNAVAILABLE
+        "401":
+          description: No valid Steam-authenticated session.
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: cs_avatar_session
+  schemas:
+    SteamSession:
+      type: object
+      additionalProperties: false
+      required: [steamId, personaName, avatarUrl, profileStatus]
+      properties:
+        steamId:
+          type: string
+          pattern: "^[0-9]{17}$"
+          description: Verified Steam identifier; preserve as a decimal string.
+        personaName:
+          type: [string, "null"]
+          maxLength: 128
+          description: Steam display nickname, or null when unavailable.
+        avatarUrl:
+          type: [string, "null"]
+          format: uri
+          description: Validated HTTPS Steam profile-image URL, or null.
+        profileStatus:
+          type: string
+          enum: [AVAILABLE, UNAVAILABLE]
