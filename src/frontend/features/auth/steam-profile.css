@@ -1,0 +1,47 @@
+.steam-profile {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.steam-profile__avatar,
+.steam-profile__fallback {
+  width: 5rem;
+  height: 5rem;
+  flex: 0 0 5rem;
+  border: 2px solid #ed7922;
+  border-radius: 50%;
+}
+
+.steam-profile__avatar {
+  object-fit: cover;
+}
+
+.steam-profile__fallback {
+  display: grid;
+  place-items: center;
+  background: #252c35;
+  color: #b7c0ca;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.steam-profile__label {
+  margin: 0 0 0.35rem;
+  color: #ed7922;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.steam-profile h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.steam-profile__status {
+  margin-bottom: 0;
+  color: #b7c0ca;
+  line-height: 1.5;
+}

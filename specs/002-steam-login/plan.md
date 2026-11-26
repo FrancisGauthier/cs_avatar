@@ -33,8 +33,8 @@ Automated tests use mocked Steam OpenID and Web API responses.
 Linux host behind an HTTPS reverse proxy. Serve the SPA and API under one site
 origin.
 
-**Project Type**: Greenfield web application in one repository, split into a
-Python ASGI backend and a TypeScript SPA under `backend/` and `frontend/`.
+**Project Type**: Greenfield web application in one repository, with the
+Python ASGI backend and TypeScript SPA under the root `src/` directory.
 Application source and dependency manifests have not yet been scaffolded.
 
 **Performance Goals**: Profile lookup is bounded by an explicit request timeout;
@@ -65,6 +65,7 @@ game/profile data.
 | IV. Testable Contracts | Define login, callback, and session response contracts; test valid, mismatched, malformed, missing, and unavailable profile responses. | PASS |
 | V. Simplicity and Maintainability | Use one authenticated-session model and one Steam profile lookup boundary; do not add a separate profile store or service. | PASS |
 | VI. Counter-Strike 2 Brand and Theme Consistency | Match the sign-in control and profile presentation to the product's CS2-inspired design; clearly state that the app is not affiliated with Steam or Valve. | PASS |
+| VII. Repository Structure | Keep application source under root `src/`, tests under `tests/`, infrastructure under `infra/`, and Spec Kit artifacts under `specs/`. | PASS |
 
 No constitution violations require an exception.
 
@@ -92,28 +93,33 @@ specs/002-steam-login/
 ### Source Code (repository root)
 
 ```text
-backend/
-├── alembic/versions/            # session-profile schema change
-├── src/cs_avatar/
+src/
+├── cs_avatar/
 │   ├── api/                     # session response includes profile fields
-│   └── auth/                    # Steam OpenID, profile lookup, session logic
-└── tests/
-    ├── auth/                    # OpenID and Steam API adapter tests
-    ├── integration/             # session and callback contracts
-    └── unit/
-
-frontend/
-└── src/
+│   ├── auth/                    # Steam OpenID, profile lookup, session logic
+│   ├── migrations/versions/     # session-profile schema change
+│   └── persistence/             # SQLAlchemy models and database access
+└── frontend/
     ├── app/                     # authenticated account area
-    ├── features/auth/           # Steam button, status, and profile view
-    └── test/                    # component and browser-level coverage
+    └── features/auth/           # Steam button, status, and profile view
+
+tests/
+├── backend/
+│   ├── auth/                    # OpenID and Steam API adapter tests
+│   └── integration/             # session and callback contracts
+└── frontend/
+    ├── e2e/                     # browser-level sign-in and profile flows
+    └── features/auth/           # component tests
+
+infra/
+└── compose.yaml                 # local PostgreSQL service
 ```
 
 **Structure Decision**: Treat this as a greenfield two-part web application.
-The React/Vite SPA initiates Steam sign-in and displays the session profile. The
-FastAPI service validates the Steam OpenID 2.0 callback, calls Steam Web API
-with a server-only key, and returns a minimal profile snapshot from the
-same-origin session endpoint.
+The React/Vite SPA under `src/frontend/` initiates Steam sign-in and displays
+the session profile. The FastAPI service under `src/cs_avatar/` validates the
+Steam OpenID 2.0 callback, calls Steam Web API with a server-only key, and
+returns a minimal profile snapshot from the same-origin session endpoint.
 
 ## Complexity Tracking
 

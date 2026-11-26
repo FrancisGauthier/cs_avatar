@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cs_avatar
+      POSTGRES_USER: cs_avatar
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-only}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - cs-avatar-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cs_avatar -d cs_avatar"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  cs-avatar-postgres:

@@ -62,16 +62,22 @@
 
 ### OpenID package selection
 
-- **Decision**: Do not select a relying-party package yet. Review candidate
-  OpenID 2.0 libraries for protocol compatibility, security history, active
-  maintenance, and license before implementation. Treat `python3-openid` as a
-  candidate only, not an approved dependency.
-- **Rationale**: PyPI lists `python3-openid` 3.2.0 as its latest release,
-  uploaded in June 2020, while the provided OpenID Foundation list certifies
-  OpenID Connect implementations rather than Steam's OpenID 2.0 flow.
-- **Alternatives considered**: Selecting an OIDC library from the linked
-  certification list, or implementing OpenID 2.0 assertion validation
-  directly, would not establish safe compatibility with Steam.
+- **Decision**: Use `python3-openid`, pinned to upstream commit
+  `7e8614c20fe6fea5312866365102d94aa4bf1e92`, for relying-party assertion
+  validation. The exact commit is pinned in `pyproject.toml`; do not replace it
+  with the older PyPI release or a moving branch without repeating this review.
+- **Rationale**: The project implements the required OpenID 2.0 consumer flow,
+  is licensed Apache-2.0, and its repository received active maintenance in
+  November 2026. The pinned revision includes upstream changes restoring the
+  operating-system CSPRNG for Diffie-Hellman/nonces and constant-time signature
+  comparison. PyPI's latest release, 3.2.0, was uploaded in 2020 and does not
+  include those changes. Because the fixed revision is not a signed release,
+  pinning the immutable commit and running its upstream and application tests
+  are required; dependency upgrades require a fresh security review.
+- **Alternatives considered**: The `python-openid` PyPI release is older and
+  targets the legacy Python 2 implementation; OIDC libraries do not verify
+  Steam's OpenID 2.0 protocol; implementing assertion verification by hand
+  would be unsafe.
 
 ### Profile lookup failure behavior
 
@@ -85,6 +91,30 @@
 - **Alternatives considered**: Rejecting sign-in whenever the profile service
   is unavailable would unnecessarily couple authentication to a secondary
   display-data dependency.
+
+## Focused implementation security review
+
+- The callback accepts only bounded, non-duplicate query parameters, binds the
+  state to an HttpOnly browser cookie, verifies a fixed Steam provider endpoint
+  and Steam identity URL, and creates a session only after successful OpenID
+  verification.
+- Login attempts expire and are atomically consumed. A unique persisted digest
+  of the OpenID response nonce prevents reuse across separate attempts; the
+  session cookie is opaque, HttpOnly, Secure, SameSite=Lax, and only its
+  keyed digest is persisted.
+- Steam profile requests remain server-side, disable redirects, use a timeout,
+  bound streamed response size, and verify that the returned Steam ID matches.
+  Avatar URLs are limited to HTTPS Steam CDN hosts, including malformed-port
+rejection. Profile/API failures do not expose credentials; only the verified
+OpenID assertion establishes identity.
+- Uvicorn access logging is disabled in the documented local command because
+  OpenID callback query strings contain assertion data. Production proxies
+  must also omit or redact query strings.
+- Automated validation passed for assertion handling, callback/session routes,
+  profile parsing and URL validation, frontend states, and a mocked browser
+  flow. A live PostgreSQL migration and real Steam sign-in remain unverified
+  because the Docker daemon was unavailable and no live Steam credentials or
+  public callback origin were configured.
 
 ## Research Sources
 
@@ -102,3 +132,7 @@
   <https://pypi.org/project/python3-openid/>
 - `python3-openid` source repository:
   <https://github.com/necaris/python3-openid>
+- `python3-openid` reviewed immutable upstream revision:
+  <https://github.com/necaris/python3-openid/commit/7e8614c20fe6fea5312866365102d94aa4bf1e92>
+- `python3-openid` security-related upstream changes and rationale:
+  <https://github.com/necaris/python3-openid/commit/e367a2a5688d69cf67e01850ba37109c433ada73>

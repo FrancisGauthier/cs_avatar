@@ -1,0 +1,66 @@
+:root {
+  color: #f3f5f7;
+  background: #111419;
+  font-family: Inter, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 50% 0, rgb(237 121 34 / 12%), transparent 50%),
+    #111419;
+}
+
+button {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(100% - 2rem, 72rem);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: clamp(2rem, 8vw, 6rem) 0;
+}
+
+.app-header {
+  margin-bottom: 3rem;
+}
+
+.app-kicker {
+  color: #ed7922;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  letter-spacing: -0.04em;
+}
+
+.auth-panel {
+  max-width: 32rem;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  border: 1px solid #343a43;
+  border-radius: 0.75rem;
+  background: #191e25;
+}
+
+.auth-panel h2 {
+  margin-top: 0;
+  font-size: 1.4rem;
+}
+
+.auth-panel p {
+  color: #b7c0ca;
+  line-height: 1.6;
+}

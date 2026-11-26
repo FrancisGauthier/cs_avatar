@@ -1,8 +1,7 @@
 # Quickstart: Steam Account Login
 
 This guide validates the Steam sign-in and profile-display increment after the
-application scaffold is available. The repository currently has no application
-source or dependency manifests.
+application scaffold is available.
 
 ## Prerequisites
 
@@ -25,48 +24,61 @@ do not require Steam credentials or a live Steam API key.
    docker compose up -d postgres
    ```
 
-2. Configure untracked local environment values for the database URL, public
-   application origin, Steam OpenID realm/return URL, session secret, and
-   backend-only Steam Web API key. Never put Steam credentials, session
-   secrets, or the API key in source control.
-3. Install and start the backend:
+2. Create the local environment file and set the session secret and Steam Web
+   API key. Configure `STEAM_OPENID_REALM` and `STEAM_OPENID_RETURN_TO` to the
+   same public origin as the SPA. Never put Steam credentials, session secrets,
+   or the API key in source control.
 
    ```powershell
-   Set-Location backend
+   Copy-Item .env.example .env
+   ```
+
+3. Install dependencies, apply the database migration, and start the backend:
+
+   ```powershell
    uv sync --extra dev
    uv run alembic upgrade head
-   uv run uvicorn cs_avatar.main:app --reload
+   uv run uvicorn cs_avatar.main:app --reload --host 127.0.0.1 --port 8000 --no-access-log
    ```
+
+   Uvicorn access logging is disabled because callback query strings contain
+   OpenID response data. Configure any reverse proxy to omit or redact query
+   strings from access logs as well.
 
 4. In a second terminal, install and start the SPA:
 
    ```powershell
-   Set-Location frontend
    npm ci
    npm run dev
    ```
 
-   The local proxy must expose the backend on the SPA's same origin.
+   The Vite development server proxies `/api` requests to the backend on port
+   8000, keeping the browser's API and callback origin same-origin.
 
 ## Validation commands
 
 ```powershell
-Set-Location backend
-uv run pytest tests/auth
-uv run pytest tests/integration
+uv run pytest tests/backend
+uv run ruff check src tests
 
-Set-Location ..\frontend
 npm run test -- --run
 npm run typecheck
+npm run build
 npm run e2e
+```
+
+Install the Playwright browser once before running the browser test:
+
+```powershell
+npx playwright install chromium
 ```
 
 Expected outcomes: valid OpenID assertions create a session for the verified
 Steam ID; mismatched, malformed, or rejected assertions do not. Valid profile
 summaries display the correct nickname and image. Missing or invalid profile
 data keeps the verified session active and displays the documented neutral
-fallback with an unavailable status. The API key is absent from browser
-requests, client bundles, and application logs.
+fallback with an unavailable status. The API key is absent from browser requests and client bundles; callback query
+strings are not written by the configured Uvicorn access logger.
 
 ## End-to-end scenarios
 
@@ -84,3 +96,13 @@ requests, client bundles, and application logs.
 For the session response see [contracts/openapi.yaml](./contracts/openapi.yaml);
 for the outbound Steam request and validation see
 [contracts/steam-web-api.md](./contracts/steam-web-api.md).
+
+## Validation status
+
+The mocked validation run passed: 25 backend tests, Ruff, 4 frontend component
+tests, the TypeScript/Vite production build, and the Playwright browser flow.
+Alembic generated the PostgreSQL migration SQL successfully in offline mode.
+Applying the migration to a live PostgreSQL instance remains unverified because
+the Docker Desktop Linux Engine was unavailable. A live Steam sign-in also
+remains unverified until a valid server-side API key and a reachable callback
+origin are configured.
