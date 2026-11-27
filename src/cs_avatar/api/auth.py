@@ -336,3 +336,34 @@ async def current_session(
         avatar_url=record.avatar_url,
         profile_status=record.profile_status,
     )
+
+
+@router.post("/logout", status_code=204)
+async def logout(
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> Response:
+    token = request.cookies.get(SESSION_COOKIE)
+    if token and len(token) <= 128:
+        now = datetime.now(UTC)
+        await session.execute(
+            update(AuthSession)
+            .where(
+                AuthSession.id_digest == digest_secret(settings.session_secret, token),
+                AuthSession.expires_at > now,
+                AuthSession.revoked_at.is_(None),
+            )
+            .values(revoked_at=now)
+        )
+        await session.commit()
+
+    response = Response(status_code=204)
+    response.delete_cookie(
+        SESSION_COOKIE,
+        path=SESSION_PATH,
+        secure=_cookie_secure(settings),
+        httponly=True,
+        samesite="lax",
+    )
+    return response

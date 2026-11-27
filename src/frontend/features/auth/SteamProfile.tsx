@@ -3,9 +3,17 @@ import './steam-profile.css';
 
 interface SteamProfileProps {
   profile: SteamSession;
+  signOutError?: string | undefined;
+  isSigningOut?: boolean | undefined;
+  onSignOut?: (() => void) | undefined;
 }
 
-export default function SteamProfile({ profile }: SteamProfileProps) {
+export default function SteamProfile({
+  profile,
+  signOutError,
+  isSigningOut = false,
+  onSignOut,
+}: SteamProfileProps) {
   const displayName = profile.personaName ?? 'Steam player';
   const avatarUrl = isSafeSteamAvatarUrl(profile.avatarUrl) ? profile.avatarUrl : null;
 
@@ -35,6 +43,21 @@ export default function SteamProfile({ profile }: SteamProfileProps) {
             Your Steam account is signed in, but public profile details are
             unavailable.
           </p>
+        )}
+        {signOutError && (
+          <p className="steam-profile__status" role="status">
+            {signOutError}
+          </p>
+        )}
+        {onSignOut && (
+          <button
+            className="steam-profile__sign-out"
+            disabled={isSigningOut}
+            onClick={onSignOut}
+            type="button"
+          >
+            {isSigningOut ? 'Signing out…' : 'Sign out'}
+          </button>
         )}
       </div>
     </section>

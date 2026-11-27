@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 
 test('player completes a mocked Steam redirect and sees their profile', async ({ page }) => {
   let signedIn = false;
+  let loginCount = 0;
+  let personaName = 'Example Player';
   await page.route('**/api/v1/auth/session', async (route) => {
     if (!signedIn) {
       await route.fulfill({ status: 401, body: 'Unauthorized' });
@@ -12,11 +14,15 @@ test('player completes a mocked Steam redirect and sees their profile', async ({
       contentType: 'application/json',
       body: JSON.stringify({
         steamId: '76561198000000000',
-        personaName: 'Example Player',
+        personaName,
         avatarUrl: 'https://steamcdn-a.akamaihd.net/example.jpg',
         profileStatus: 'AVAILABLE',
       }),
     });
+  });
+  await page.route('**/api/v1/auth/logout', async (route) => {
+    signedIn = false;
+    await route.fulfill({ status: 204 });
   });
   await page.route('**/api/v1/auth/steam/login', async (route) => {
     await route.fulfill({
@@ -26,6 +32,8 @@ test('player completes a mocked Steam redirect and sees their profile', async ({
   });
   await page.route('**/api/v1/auth/steam/callback?**', async (route) => {
     signedIn = true;
+    personaName = loginCount === 0 ? 'Example Player' : 'Second Player';
+    loginCount += 1;
     await route.fulfill({
       status: 302,
       headers: { location: '/' },
@@ -52,4 +60,23 @@ test('player completes a mocked Steam redirect and sees their profile', async ({
   await expect(page).toHaveURL(/127\.0\.0\.1:5173\/$/);
   await expect(page.getByText('Example Player')).toBeVisible();
   await expect(page.locator('input[type="password"]')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  await expect(page.getByRole('button', { name: 'Log in with Steam' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Welcome' })).toBeVisible();
+  await expect(page.getByText('Example Player')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Log in with Steam' }).click();
+  await expect(page).toHaveURL(/127\.0\.0\.1:5173\/mock-steam\/login/);
+  await page.setContent(`
+    <main>
+      <h1>Mock Steam Community sign-in</h1>
+      <button onclick="window.location.href='http://127.0.0.1:5173/api/v1/auth/steam/callback?state=e2e&openid.mode=id_res'">
+        Authenticate
+      </button>
+    </main>`);
+  await page.getByRole('button', { name: 'Authenticate' }).click();
+
+  await expect(page.getByText('Second Player')).toBeVisible();
+  await expect(page.getByText('Example Player')).toHaveCount(0);
 });

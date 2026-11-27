@@ -1,0 +1,39 @@
+openapi: 3.1.0
+info:
+  title: cs_avatar Steam App Sign-Out Contract
+  version: 1.0.0
+  description: |
+    App-session revocation for a user authenticated through Steam OpenID.
+    This operation signs the user out of cs_avatar only; it does not terminate
+    their Steam provider session.
+servers:
+  - url: https://cs-avatar.example
+    description: Production same-origin API
+paths:
+  /api/v1/auth/logout:
+    post:
+      summary: End the current app session
+      description: |
+        Uses the existing app session cookie to revoke that session and clears
+        the cookie. The operation is idempotent: a missing, expired, or already
+        revoked session is treated as already signed out. No Steam account
+        identifier or session token is accepted in the request body.
+      security:
+        - {}
+        - sessionCookie: []
+      responses:
+        "204":
+          description: The current app session is ended or was already unavailable; cookie is cleared.
+          headers:
+            Set-Cookie:
+              description: Expires the cs_avatar_session cookie.
+              schema:
+                type: string
+        "5XX":
+          description: Sign-out could not be confirmed; the client must not report success.
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: cs_avatar_session
